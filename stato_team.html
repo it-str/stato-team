@@ -315,6 +315,8 @@ const STATES = [
 ];
 
 const FILENAME = 'stati.json';
+const READ_TOKEN = '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';
+const GIST_ID_DEFAULT = '4aa600e84bf6536b3643700944733d75';
 const POLL_INTERVAL = 30000;
 
 function getCfg() {
@@ -360,18 +362,14 @@ function hideError() {
 let currentData = {};
 
 async function fetchStates() {
-  const { gistId } = getCfg();
-  if (!gistId) {
-    setStatus('error', 'Gist ID non configurato');
-    showError('Apri "Configurazione" in basso e inserisci Gist ID e Token.');
-    renderCards({});
-    return;
-  }
+  const cfg = getCfg();
+  const gistId = cfg.gistId || GIST_ID_DEFAULT;
+  const readToken = READ_TOKEN;
   setStatus('loading', 'Aggiornamento...');
   try {
-    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
-      headers: { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }
-    });
+    const headers = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+    if (readToken) headers['Authorization'] = `Bearer ${readToken}`;
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const gist = await res.json();
     const raw = gist.files[FILENAME]?.content;
